@@ -14,7 +14,7 @@ from network.utils import to_cuda
 
 from tqdm import tqdm
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"    # os.environ 是一个 Python 字典，它包含了所有的环境变量。
 
 parser = argparse.ArgumentParser(description='BEVPlace')
 parser.add_argument('--test_batch_size', type=int, default=8, help='Batch size for testing')

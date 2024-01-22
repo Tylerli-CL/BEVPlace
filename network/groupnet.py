@@ -160,7 +160,7 @@ class EmbedderWrapper(nn.Module):
         return gefeats
 
 class GroupNet(nn.Module):
-    def __init__(self, config=group_config):
+    def __init__(self, config=group_config):    # configuration 配置
         super(GroupNet, self).__init__()
         self.scale_num = config.sample_scale_num
         self.rotation_num = config.sample_rotate_num
@@ -169,7 +169,7 @@ class GroupNet(nn.Module):
         self.embedder=EmbedderWrapper().cuda()
 
     def forward(self, input):
-        (img_list,pts_list) = input
-        gfeats=self.extractor(dim_extend(img_list),dim_extend(pts_list))
+        (img_list, pts_list) = input
+        gfeats=self.extractor(dim_extend(img_list), dim_extend(pts_list))
         efeats=self.embedder(gfeats)
         return efeats
