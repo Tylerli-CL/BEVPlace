@@ -11,15 +11,23 @@ from network.utils import TransformerCV
 from network.groupnet import group_config
 
 def input_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                               std=[0.229, 0.224, 0.225]),
-    ])
+
+    return transforms.Compose([transforms.ToTensor(),
+                                transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                                     std=[0.229, 0.224, 0.225]),
+                             ])
+#  torchvision.transforms
+# transforms.Compose([...]): transforms.Compose 是一个将多个数据转换操作组合在一起的类。在这里，我们使用 transforms.Compose 创建了一个转换操作的列表，其中包含了两个操作：
+    # transforms.ToTensor(): 这个操作将图像数据转换为PyTorch张量（tensor）。深度学习模型通常需要输入张量作为数据。
+    # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]): 这个操作对图像进行归一化处理，减去均值并除以标准差。这是一个常见的数据预处理步骤，有助于提高模型的训练稳定性和性能。
+    
 
 class KITTIDataset(data.Dataset):
-    def __init__(self, data_path, seq):
+    def __init__(self, data_path, sequence):
         super().__init__()
+
+        self.positives = None
+        self.distances = None
 
         #protocol setting
         db_frames = {'00': range(0,3000), '02': range(0,3400), '05': range(0,1000), '06': range(0,600)}
@@ -32,43 +40,55 @@ class KITTIDataset(data.Dataset):
         self.transformer = TransformerCV(group_config)
         self.pts_step = 5
 
-        #root pathes
-        bev_path = data_path + '/'+seq+'/' + '/imgs/'
-        lidar_path = data_path+ '/'+seq+'/' + '/velodyne/'
+        # root pathes
+        # bev_path = data_path + '/' + sequence + '/' + '/imgs/'           # BEV-Image path
+        # lidar_path = data_path + '/' + sequence + '/' + '/velodyne/'     # Lidar path
 
-        #geometry positions
-        poses = np.loadtxt(data_path+'/'+ seq+'/pose.txt')
-        positions = np.hstack([poses[:,3].reshape(-1,1),  poses[:,7].reshape(-1,1)])
+        bev_path = os.path.join(data_path, sequence, 'imgs')                # BEV-Image path
+        lidar_path = os.path.join(data_path, sequence, 'velodyne')          # Lidar path
 
-        self.db_positions = positions[db_frames[seq], :]
-        self.query_positions = positions[query_frames[seq], :]
+        # geometry positions 
+        poses = np.loadtxt(data_path + '/' + sequence + '/pose.txt')
+        positions = np.hstack([poses[:,3].reshape(-1,1),
+                               poses[:,7].reshape(-1,1)])        # horizontal stack
 
-        self.num_db = len(db_frames[seq])
+        self.db_positions = positions[db_frames[sequence], :]
+        self.query_positions = positions[query_frames[sequence], :]
+
+        self.num_db = len(db_frames[sequence])
 
         #image pathes
         images = os.listdir(bev_path)
         images.sort()
         self.images = []
-        for idx in db_frames[seq]:
+        for idx in db_frames[sequence]:
             self.images.append(bev_path+images[idx])
-        for idx in query_frames[seq]:
+        for idx in query_frames[sequence]:
             self.images.append(bev_path+images[idx])     
 
-        self.positives = None
-        self.distances = None
+
 
     def transformImg(self, img):
-        xs, ys = np.meshgrid(np.arange(self.pts_step,img.size()[1]-self.pts_step,self.pts_step), np.arange(self.pts_step,img.size()[2]-self.pts_step,self.pts_step))
-        xs=xs.reshape(-1,1)
+        xs, ys = np.meshgrid(np.arange(self.pts_step, img.size()[1]-self.pts_step, self.pts_step), 
+                             np.arange(self.pts_step, img.size()[2]-self.pts_step, self.pts_step))
+
+        xs = xs.reshape(-1,1)
         ys = ys.reshape(-1,1)
+
         pts = np.hstack((xs,ys))
+
         img = img.permute(1,2,0).detach().numpy()
-        transformed_imgs=self.transformer.transform(img,pts)
+        
+        transformed_imgs = self.transformer.transform(img, pts)
+
         data = self.transformer.postprocess_transformed_imgs(transformed_imgs)
+
         return data
 
     def __getitem__(self, index):
-        img = Image.open(self.images[index]).convert('RGB')
+
+        img = Image.open(self.images[index]).convert('RGB')     # open a iamge and convert to RGB
+
         img = self.input_transform(img)
         img*=255
         img = self.transformImg(img)
@@ -79,6 +99,7 @@ class KITTIDataset(data.Dataset):
         return len(self.images)
 
     def getPositives(self):
+
         # positives for evaluation are those within trivial threshold range
         #fit NN to find them, search by radius
         if  self.positives is None:
@@ -86,6 +107,6 @@ class KITTIDataset(data.Dataset):
             knn.fit(self.db_positions)
 
             self.distances, self.positives = knn.radius_neighbors(self.query_positions,
-                    radius=self.pos_threshold)
+                                                                  radius=self.pos_threshold)
 
         return self.positives

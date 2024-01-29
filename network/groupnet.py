@@ -7,6 +7,9 @@ from .utils import normalize_coordinates, interpolate_feats, to_cuda, dim_extend
 
 import os
 
+# We implemented our network based on GIFT
+# GIFT is originally designed for image matching and can produce distinct local features.
+
 class GroupNetConfig:
     def __init__(self):
         self.sample_scale_begin = 0

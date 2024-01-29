@@ -14,9 +14,12 @@ from network.utils import to_cuda
 
 from tqdm import tqdm
 
+# tqdm是一个用于在终端中显示进度条的库，它通常用于循环迭代、文件读写等长时间运行的任务，以向用户展示任务的进展。
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"    # os.environ 是一个 Python 字典，它包含了所有的环境变量。
 
 parser = argparse.ArgumentParser(description='BEVPlace')
+
 parser.add_argument('--test_batch_size', type=int, default=8, help='Batch size for testing')
 parser.add_argument('--nGPU', type=int, default=2, help='number of GPU to use.')
 parser.add_argument('--nocuda', action='store_true', help='Dont use cuda')
@@ -26,10 +29,13 @@ parser.add_argument('--resume', type=str, default='checkpoints/checkpoint_paper_
 
 def evaluate(eval_set, model):
     test_data_loader = DataLoader(dataset=eval_set, 
-                num_workers=opt.threads, batch_size=opt.test_batch_size, shuffle=False, 
-                pin_memory=cuda)
+                                  num_workers=opt.threads, 
+                                  batch_size=opt.test_batch_size, 
+                                  shuffle=False, 
+                                  pin_memory=cuda)
 
-    model.eval()
+    model.eval()        # Sets the module in evaluation mode
+
 
     global_features = []
     with torch.no_grad():
@@ -43,6 +49,7 @@ def evaluate(eval_set, model):
                 t.update(1)
 
     global_features = np.vstack(global_features)
+
 
     query_feat = global_features[eval_set.num_db:].astype('float32')
     db_feat = global_features[:eval_set.num_db].astype('float32')
@@ -82,6 +89,8 @@ import dataset as dataset
 
 from network import netvlad
 
+
+
 if __name__ == "__main__":
     opt = parser.parse_args()
 
@@ -109,6 +118,7 @@ if __name__ == "__main__":
 
     data_path = './data/KITTIRot/'
     recall_seq = {"00":0, "02":0, "05":0, "06":0}
+
     for seq in list(recall_seq.keys()):
         print('===> Processing KITTI Seq. %s'%(seq))
         eval_set = dataset.KITTIDataset(data_path, seq)

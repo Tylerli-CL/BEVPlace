@@ -8,7 +8,7 @@ from network.groupnet import GroupNet
 class BEVPlace(nn.Module):
     def __init__(self):
         super(BEVPlace, self).__init__()
-        self.encoder = GroupNet()
+        self.encoder = GroupNet()           # 
         self.netvlad = NetVLAD()
 
     def forward(self, input):
