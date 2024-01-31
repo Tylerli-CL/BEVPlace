@@ -20,9 +20,9 @@ def dim_extend(data_list):
 def to_cuda(data):
     results = []
     for i, item in enumerate(data):
-        if type(item).__name__ == "Tensor":
+        if type(item).__name__ == "Tensor":         # if Tensor
             results.append(item.cuda())
-        elif type(item).__name__ == 'list':
+        elif type(item).__name__ == 'list':         # if List
             tensor_list = []
             for tensor in item:
                 if type(tensor).__name__ == "Tensor":
@@ -31,6 +31,7 @@ def to_cuda(data):
                     tensor_list2 = []
                     for tensor_i in tensor:
                         tensor_list2.append(tensor_i.cuda())
+
                     tensor_list.append(tensor_list2)
             results.append(tensor_list)
         else:
@@ -72,6 +73,7 @@ def normalize_image(img,mask=None):
     if mask is not None: img[np.logical_not(mask.astype(np.bool))]=127
     img=(img.transpose([2,0,1]).astype(np.float32)-127.0)/128.0
     return torch.tensor(img,dtype=torch.float32)
+
 
 def tensor_to_image(tensor):
     return (tensor * 128 + 127).astype(np.uint8).transpose(1,2,0)
@@ -148,10 +150,13 @@ class TransformerCV:
 
     @staticmethod
     def postprocess_transformed_imgs(results):
+
         img_list,pts_list,grid_list=[],[],[]
+        
         for img_id, img in enumerate(results['img']):
+
             img_list.append(normalize_image(img))
-            pts_list.append(torch.tensor(results['pts'][img_id],dtype=torch.float32))
+            pts_list.append(torch.tensor(results['pts'][img_id], dtype=torch.float32))
 
         return img_list, pts_list
 

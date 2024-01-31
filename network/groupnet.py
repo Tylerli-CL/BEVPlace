@@ -11,16 +11,16 @@ import os
 # GIFT is originally designed for image matching and can produce distinct local features.
 
 class GroupNetConfig:
+    # GroupNet Configration
+
     def __init__(self):
-        self.sample_scale_begin = 0
-        self.sample_scale_inter = 0.5 
-        self.sample_scale_num = 5 
+        self.sample_scale_begin = 0         # 采样比例或尺度的起始值
+        self.sample_scale_inter = 0.5       # 采样尺度的间隔或步长
+        self.sample_scale_num = 5           # 采样尺度的数量
 
-        self.sample_rotate_begin = -90
-        self.sample_rotate_inter = 45 
-        self.sample_rotate_num = 5   
-
-group_config = GroupNetConfig()
+        self.sample_rotate_begin = -90      # 旋转采样的起始角度
+        self.sample_rotate_inter = 45       # 旋转采样的角度间隔
+        self.sample_rotate_num = 5          # 旋转采样的次数
 
 class VanillaLightCNN(nn.Module):
     def __init__(self):
@@ -162,17 +162,28 @@ class EmbedderWrapper(nn.Module):
         gefeats=self.embedder(gfeats) # b,n,f
         return gefeats
 
+
+
+# Creating instances of classes
+group_config = GroupNetConfig()
+
 class GroupNet(nn.Module):
     def __init__(self, config=group_config):    # configuration 配置
-        super(GroupNet, self).__init__()
-        self.scale_num = config.sample_scale_num
-        self.rotation_num = config.sample_rotate_num
 
-        self.extractor=ExtractorWrapper(self.scale_num, self.rotation_num).cuda()
-        self.embedder=EmbedderWrapper().cuda()
+        super(GroupNet, self).__init__()
+
+        self.scale_num = config.sample_scale_num            # Get the number of scales from the configuration
+        self.rotation_num = config.sample_rotate_num        # Get the number of rotations from the configuration
+        
+        # Create feature extractor and embedder（特征提取器和嵌入器
+        self.extractor = ExtractorWrapper(self.scale_num, self.rotation_num).cuda()
+        self.embedder  = EmbedderWrapper().cuda()
 
     def forward(self, input):
+
         (img_list, pts_list) = input
-        gfeats=self.extractor(dim_extend(img_list), dim_extend(pts_list))
-        efeats=self.embedder(gfeats)
+
+        gfeats=self.extractor(dim_extend(img_list), dim_extend(pts_list))       #  Extract global features
+        efeats=self.embedder(gfeats)                                            # Generate embedded features
+
         return efeats

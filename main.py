@@ -8,7 +8,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import faiss
+
+import faiss                                # Faiss is a library for efficient similarity search and clustering of dense vectors.
+
 from network.bevplace import BEVPlace
 from network.utils import to_cuda
 
@@ -44,10 +46,14 @@ def evaluate(eval_set, model):
             for iteration, (input, indices) in enumerate(test_data_loader, 1):
                 if cuda:
                     input = to_cuda(input)
+                
+                # Output of the model
                 batch_feature = model(input)
                 global_features.append(batch_feature.detach().cpu().numpy())
                 t.update(1)
 
+
+    # Processing global features
     global_features = np.vstack(global_features)
 
 
@@ -59,7 +65,7 @@ def evaluate(eval_set, model):
     faiss_index.add(db_feat)
 
     # print('====> Calculating recall @ N')
-    n_values = [1,5,10,20]
+    n_values = [1,5, 10, 20]
 
     _, predictions = faiss_index.search(query_feat, max(n_values)) 
 
@@ -92,6 +98,7 @@ from network import netvlad
 
 
 if __name__ == "__main__":
+    
     opt = parser.parse_args()
 
     cuda = not opt.nocuda
@@ -102,11 +109,13 @@ if __name__ == "__main__":
      
     print('===> Building model')
     model = BEVPlace()
-    resume_ckpt = opt.resume
 
+    resume_ckpt = opt.resume    # 
     print("=> loading checkpoint '{}'".format(resume_ckpt))
     checkpoint = torch.load(resume_ckpt, map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint['state_dict'],strict=False)
+
+    model.load_state_dict(checkpoint['state_dict'], strict=False)       # load the model
+
     model = model.to(device)
     print("=> loaded checkpoint '{}' (epoch {})"
             .format(resume_ckpt, checkpoint['epoch']))
@@ -122,6 +131,8 @@ if __name__ == "__main__":
     for seq in list(recall_seq.keys()):
         print('===> Processing KITTI Seq. %s'%(seq))
         eval_set = dataset.KITTIDataset(data_path, seq)
+
         recalls = evaluate(eval_set, model)
         recall_seq[seq] = recalls[1]
+    
     print("===> Recalls@1", recall_seq)
