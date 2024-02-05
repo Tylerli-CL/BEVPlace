@@ -15,8 +15,7 @@ def input_transform():
 
     return transforms.Compose([transforms.ToTensor(),
                                transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                     std=[0.229, 0.224, 0.225]),
-                             ])
+                                                     std=[0.229, 0.224, 0.225]), ])
 #  torchvision.transforms
 # transforms.Compose([...]): transforms.Compose 是一个将多个数据转换操作组合在一起的类。在这里，我们使用 transforms.Compose 创建了一个转换操作的列表，其中包含了两个操作：
     # transforms.ToTensor(): 这个操作将图像数据转换为PyTorch张量（tensor）。深度学习模型通常需要输入张量作为数据。
@@ -110,7 +109,7 @@ class KITTIDataset(data.Dataset):
     def getPositives(self):
 
         # positives for evaluation are those within trivial threshold range
-        #fit NN to find them, search by radius
+        # fit NN to find them, search by radius
         if  self.positives is None:
             knn = NearestNeighbors(n_jobs=-1)       # n_jobs: Number of neighbors to use by default for kneighbors queries.
 

@@ -50,7 +50,7 @@ class VanillaLightCNN(nn.Module):
         x=l2_normalize(x,axis=1)
         return x
 
-class ExtractorWrapper(nn.Module):
+class ExtractorWrapper(nn.Module):                      # wrapper 包装
     def __init__(self,scale_num, rotation_num):
         super(ExtractorWrapper, self).__init__()
         self.extractor=VanillaLightCNN()

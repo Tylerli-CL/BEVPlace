@@ -82,15 +82,16 @@ if __name__ == "__main__":
     for i in trange(len(bins_path)):    # trange 进度条
 
         b_p = bins_path[i]
-        pcs = np.fromfile(args.vel_path + '/' + b_p, dtype=np.float32).reshape(-1,4)[:,:3]
+        pcs = np.fromfile(args.vel_path + '/' + b_p, dtype=np.float32).reshape(-1,4)[:,:3] # 从二进制文件中读取Velodyne点云数据，将数据类型设为np.float32，并将每行数据重新整形为三列（x、y、z），丢弃了第四列，因为通常它是强度信息。
 
         # ang = np.random.randint(360)/180.0*np.pi
         # rot_mat = np.array([[np.cos(ang),np.sin(ang),0],[-np.sin(ang),np.cos(ang),0],[0,0,1]])
         # pcs = pcs.dot(rot_mat)
 
-        pcs = pcs[np.where(np.abs(pcs[:,0])<25)[0],:]
-        pcs = pcs[np.where(np.abs(pcs[:,1])<25)[0],:]
-        pcs = pcs[np.where((np.abs(pcs[:,2])<25))[0],:]
+        # 用于过滤点云数据，删除超出指定范围的点。在这个示例中，对x、y和z坐标都进行了过滤，将超出[-25, 25]的点删除。
+        pcs = pcs[np.where(np.abs(pcs[:, 0])<25)[0],:]
+        pcs = pcs[np.where(np.abs(pcs[:, 1])<25)[0],:]
+        pcs = pcs[np.where(np.abs(pcs[:, 2])<25)[0],:]
 
         pcs = pcs.astype(np.float32)    # 转化为np.float32
 
