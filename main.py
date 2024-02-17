@@ -56,9 +56,9 @@ def evaluate(eval_set, model):
     # Processing global features
     global_features = np.vstack(global_features)
 
-
+    # Perform slicing operations on global features
     query_feat = global_features[eval_set.num_db:].astype('float32')
-    db_feat = global_features[:eval_set.num_db].astype('float32')
+    db_feat    = global_features[:eval_set.num_db].astype('float32')
 
     # print('====> Building faiss index')
     faiss_index = faiss.IndexFlatL2(query_feat.shape[1])
